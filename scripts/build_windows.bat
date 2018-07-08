@@ -75,6 +75,8 @@ cmake .. ^
   -DUSE_OPENCV=OFF ^
   -DBUILD_SHARED_LIBS=OFF ^
   -DBUILD_PYTHON=OFF^
+  -DCAFFE2_USE_MSVC_STATIC_RUNTIME=OFF ^
+  -"DTORCH_CUDA_ARCH_LIST=3.0 3.2 3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5+PTX 7.5" ^
   || goto :label_error
 
 :: Actually run the build

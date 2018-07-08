@@ -42,6 +42,7 @@ if(CUDA_FOUND)
     message(FATAL_ERROR "Caffe2: Couldn't determine version from header: " ${output_var})
   endif()
   message(STATUS "Caffe2: Header version is: " ${cuda_version_from_header})
+  set(CUDA_VERSION ${cuda_version_from_header})
   if(NOT ${cuda_version_from_header} STREQUAL ${CUDA_VERSION})
     # Force CUDA to be processed for again next time
     # TODO: I'm not sure if this counts as an implementation detail of
@@ -283,21 +284,21 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 endif()
 
 if (${CUDA_VERSION} LESS 8.0) # CUDA 7.x
-  list(APPEND CUDA_NVCC_FLAGS "-D_MWAITXINTRIN_H_INCLUDED")
-  list(APPEND CUDA_NVCC_FLAGS "-D__STRICT_ANSI__")
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -D_MWAITXINTRIN_H_INCLUDED")
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -D__STRICT_ANSI__")
 elseif (${CUDA_VERSION} LESS 9.0) # CUDA 8.x
-  list(APPEND CUDA_NVCC_FLAGS "-D_MWAITXINTRIN_H_INCLUDED")
-  list(APPEND CUDA_NVCC_FLAGS "-D__STRICT_ANSI__")
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -D_MWAITXINTRIN_H_INCLUDED")
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -D__STRICT_ANSI__")
   # CUDA 8 may complain that sm_20 is no longer supported. Suppress the
   # warning for now.
-  list(APPEND CUDA_NVCC_FLAGS "-Wno-deprecated-gpu-targets")
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
 endif()
 
 # Add onnx namepsace definition to nvcc
 if (ONNX_NAMESPACE)
-  list(APPEND CUDA_NVCC_FLAGS "-DONNX_NAMESPACE=${ONNX_NAMESPACE}")
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DONNX_NAMESPACE=${ONNX_NAMESPACE}")
 else()
-  list(APPEND CUDA_NVCC_FLAGS "-DONNX_NAMESPACE=onnx_c2")
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DONNX_NAMESPACE=onnx_c2")
 endif()
 
 # CUDA 9.0 & 9.1 require GCC version <= 5
@@ -330,28 +331,29 @@ endif()
 
 # setting nvcc arch flags
 torch_cuda_get_nvcc_gencode_flag(NVCC_FLAGS_EXTRA)
-list(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
+string(REPLACE ";" " " NVCC_FLAGS_EXTRA "${NVCC_FLAGS_EXTRA}")
+SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${NVCC_FLAGS_EXTRA}")
 message(STATUS "Added CUDA NVCC flags for: ${NVCC_FLAGS_EXTRA}")
 
 # disable some nvcc diagnostic that apears in boost, glog, glags, opencv, etc.
 foreach(diag cc_clobber_ignored integer_sign_change useless_using_declaration set_but_not_used)
-  list(APPEND CUDA_NVCC_FLAGS -Xcudafe --diag_suppress=${diag})
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe --diag_suppress=${diag}")
 endforeach()
 
 # Set C++11 support
 set(CUDA_PROPAGATE_HOST_FLAGS_BLACKLIST "-Werror")
 if (NOT MSVC)
-  list(APPEND CUDA_NVCC_FLAGS "-std=c++11")
-  list(APPEND CUDA_NVCC_FLAGS "-Xcompiler -fPIC")
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++11")
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -fPIC")
 endif()
 
 # Debug and Release symbol support
 if (MSVC)
   if ((${CMAKE_BUILD_TYPE} MATCHES "Release") OR (${CMAKE_BUILD_TYPE} MATCHES "RelWithDebInfo") OR (${CMAKE_BUILD_TYPE} MATCHES "MinSizeRel"))
     if (${CAFFE2_USE_MSVC_STATIC_RUNTIME})
-      list(APPEND CUDA_NVCC_FLAGS "-Xcompiler" "-MT")
+      SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler /MT")
     else()
-      list(APPEND CUDA_NVCC_FLAGS "-Xcompiler" "-MD")
+      SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler /MD")
     endif()
   elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     message(FATAL_ERROR
@@ -359,19 +361,19 @@ if (MSVC)
             "and Debug mode. Either set USE_CUDA=OFF or set the build type "
             "to Release")
     if (${CAFFE2_USE_MSVC_STATIC_RUNTIME})
-      list(APPEND CUDA_NVCC_FLAGS "-Xcompiler" "-MTd")
+      SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler /MTd")
     else()
-      list(APPEND CUDA_NVCC_FLAGS "-Xcompiler" "-MDd")
+      SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler /MDd")
     endif()
   else()
     message(FATAL_ERROR "Unknown cmake build type: " ${CMAKE_BUILD_TYPE})
   endif()
 elseif (CUDA_DEVICE_DEBUG)
-  list(APPEND CUDA_NVCC_FLAGS "-g" "-G")  # -G enables device code debugging symbols
+  SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g" "-G")  # -G enables device code debugging symbols
 endif()
 
 # Set expt-relaxed-constexpr to suppress Eigen warnings
-list(APPEND CUDA_NVCC_FLAGS "--expt-relaxed-constexpr")
+SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
 
 # Set expt-extended-lambda to support lambda on device
-list(APPEND CUDA_NVCC_FLAGS "--expt-extended-lambda")
+SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-extended-lambda")
