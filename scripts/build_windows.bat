@@ -18,6 +18,10 @@ if NOT DEFINED USE_CUDA (
   set USE_CUDA=OFF
 )
 
+if NOT DEFINED CMAKE_INSTALL_PREFIX (
+  set CMAKE_INSTALL_PREFIX=C:\Program Files\Caffe2
+)
+
 if NOT DEFINED CMAKE_GENERATOR (
   if DEFINED APPVEYOR_BUILD_WORKER_IMAGE (
     if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" (
@@ -65,10 +69,13 @@ cmake .. ^
   -DUSE_OPENCV=OFF ^
   -DBUILD_SHARED_LIBS=OFF ^
   -DBUILD_PYTHON=OFF^
+  -DCAFFE2_USE_MSVC_STATIC_RUNTIME=OFF ^
+  -"DTORCH_CUDA_ARCH_LIST=3.0 3.2 3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5+PTX 7.5" ^
+  -"DCMAKE_INSTALL_PREFIX=%CMAKE_INSTALL_PREFIX%" ^
   || goto :label_error
 
 :: Actually run the build
-cmake --build . --config %CMAKE_BUILD_TYPE% -- /maxcpucount:%NUMBER_OF_PROCESSORS% || goto :label_error
+cmake --build . --config %CMAKE_BUILD_TYPE% -- /maxcpucount:%NUMBER_OF_PROCESSORS% --target install || goto :label_error
 
 echo "Caffe2 built successfully"
 cd %ORIGINAL_DIR%

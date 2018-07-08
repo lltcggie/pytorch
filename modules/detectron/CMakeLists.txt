@@ -4,7 +4,7 @@ file(GLOB Detectron_GPU_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/*.cu)
 # Note(ilijar): Since Detectron ops currently have no
 # CPU implementation, we only build GPU ops for now.
 if (USE_CUDA)
-  CUDA_ADD_LIBRARY(
+  ADD_LIBRARY(
       caffe2_detectron_ops_gpu SHARED
       ${Detectron_CPU_SRCS}
       ${Detectron_GPU_SRCS})

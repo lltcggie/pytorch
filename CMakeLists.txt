@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 #cmake_policy(SET CMP0023 NEW)
 
 # ---[ Project and semantic versioning.
-project(Caffe2 CXX C)
+project(Caffe2 LANGUAGES CXX C CUDA)
 
 set(CAFFE2_VERSION_MAJOR 0)
 set(CAFFE2_VERSION_MINOR 8)
