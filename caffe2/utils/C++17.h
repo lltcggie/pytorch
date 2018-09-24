@@ -95,10 +95,10 @@ template<class T> using decay_t = typename std::decay<T>::type;
 
 #ifdef __cpp_lib_logical_traits
 
-using conjunction = std::conjunction;
-using disjunction = std::disjunction;
-using bool_constant = std::bool_constant;
-using negation = std::negation;
+using std::conjunction;
+using std::disjunction;
+using std::bool_constant;
+using std::negation;
 
 #else
 
@@ -145,7 +145,7 @@ template<typename... Ts> using void_t = typename make_void<Ts...>::type;
 
 #ifdef __cpp_lib_apply
 
-using apply = std::apply;
+using std::apply;
 
 #else
 
